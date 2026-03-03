@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ramadan Tracker — Syariff & Raisya</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night: #06091a;
+  --deep: #0c1230;
+  --gold: #e8b84b;
+  --gold-soft: #f5d07a;
+  --teal: #2dd4bf;
+  --syariff: #38bdf8;
+  --raisya: #f472b6;
+  --green: #4ade80;
+  --cream: #fef3c7;
+  --white: #f0f6ff;
+  --border: rgba(232,184,75,0.18);
+  --card: rgba(255,255,255,0.04);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--night);
+  font-family: 'Nunito', sans-serif;
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NIGHT SKY BG ── */
+.sky {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  pointer-events: none; z-index: 0;
+  background: radial-gradient(ellipse at 30% 0%, #1a1f4e 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 10%, #0f2a3a 0%, transparent 50%),
+              var(--night);
+}
+
+/* Stars */
+.stars {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  pointer-events: none; z-index: 0;
+}
+.star-dot {
+  position: absolute; border-radius: 50%;
+  background: white;
+  animation: twinkle var(--dur, 3s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes twinkle {
+  0%,100% { opacity: var(--op, 0.6); transform: scale(1); }
+  50% { opacity: 0.15; transform: scale(0.7); }
+}
+
+/* Crescent moon decoration */
+.moon-deco {
+  position: fixed; top: 20px; right: 40px;
+  font-size: 4rem; z-index: 1; pointer-events: none;
+  animation: moonFloat 6s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(232,184,75,0.5));
+}
+@keyframes moonFloat {
+  0%,100% { transform: translateY(0) rotate(-10deg); }
+  50% { transform: translateY(-12px) rotate(-5deg); }
+}
+
+.wrap { max-width: 1050px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
+
+/* ── HEADER ── */
+.header {
+  text-align: center;
+  padding: 50px 20px 30px;
+}
+
+.arabic-text {
+  font-family: 'Amiri', serif;
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+  color: var(--gold);
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 6px;
+  text-shadow: 0 0 30px rgba(232,184,75,0.4);
+}
+
+.ramadan-title {
+  font-family: 'Amiri', serif;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  color: var(--gold-soft);
+  letter-spacing: 3px;
+  line-height: 1.1;
+  text-shadow: 0 0 40px rgba(232,184,75,0.3);
+  margin-bottom: 6px;
+}
+
+.subtitle-row {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin: 10px 0;
+}
+.subtitle-line { flex:1; max-width:100px; height:1px; background: linear-gradient(to right, transparent, var(--gold)); }
+.subtitle-line.r { background: linear-gradient(to left, transparent, var(--gold)); }
+.subtitle-text { color: rgba(240,246,255,0.55); font-size: .9rem; font-weight: 700; letter-spacing: 2px; }
+
+/* Year progress */
+.hijri-date {
+  background: rgba(232,184,75,0.1);
+  border: 1px solid var(--border);
+  border-radius: 50px;
+  display: inline-block;
+  padding: 6px 20px;
+  font-size: .85rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 1px;
+  margin-top: 10px;
+}
+
+/* ── HERO CARDS ── */
+.heroes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 28px 0; }
+@media(max-width:560px) { .heroes { grid-template-columns: 1fr; } }
+
+.hero-card {
+  border-radius: 22px; padding: 22px;
+  position: relative; overflow: hidden;
+  transition: transform .3s;
+}
+.hero-card:hover { transform: translateY(-3px); }
+
+.hc-syariff {
+  background: linear-gradient(135deg, #050d20 0%, #0a1a35 100%);
+  border: 1px solid rgba(56,189,248,0.3);
+  box-shadow: 0 0 30px rgba(56,189,248,0.1), inset 0 1px 0 rgba(56,189,248,0.15);
+}
+.hc-raisya {
+  background: linear-gradient(135deg, #130520 0%, #200a30 100%);
+  border: 1px solid rgba(244,114,182,0.3);
+  box-shadow: 0 0 30px rgba(244,114,182,0.1), inset 0 1px 0 rgba(244,114,182,0.15);
+}
+
+/* Decorative arc inside card */
+.hc-syariff::before {
+  content: '';
+  position: absolute; top: -60px; right: -60px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  border: 2px solid rgba(56,189,248,0.1);
+}
+.hc-raisya::before {
+  content: '';
+  position: absolute; top: -60px; right: -60px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  border: 2px solid rgba(244,114,182,0.1);
+}
+
+.hc-emoji { font-size: 3.2rem; display: block; animation: float 3.5s ease-in-out infinite; margin-bottom: 8px; }
+.hc-raisya .hc-emoji { animation-delay: -1.8s; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+.hc-name { font-family: 'Amiri', serif; font-size: 1.9rem; font-weight: 700; letter-spacing: 1px; }
+.hc-syariff .hc-name { color: var(--syariff); }
+.hc-raisya  .hc-name { color: var(--raisya); }
+
+.hc-title { font-size: .75rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; opacity: .6; margin-top: 3px; }
+
+/* XP bar on card */
+.hc-xp-label { font-size: .72rem; font-weight: 800; opacity: .5; letter-spacing: 2px; text-transform: uppercase; margin-top: 14px; margin-bottom: 6px; }
+.hc-xp-bg { background: rgba(255,255,255,.06); border-radius: 10px; height: 8px; overflow: hidden; }
+.hc-xp-fill { height: 100%; border-radius: 10px; transition: width .6s ease; }
+.hc-syariff .hc-xp-fill { background: linear-gradient(to right, var(--syariff), #7dd3fc); }
+.hc-raisya  .hc-xp-fill { background: linear-gradient(to right, var(--raisya), #f9a8d4); }
+.hc-xp-pts { font-family: 'Amiri', serif; font-size: 1.1rem; color: var(--gold); margin-top: 4px; }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.tab-btn {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(232,184,75,.2);
+  color: rgba(240,246,255,.7);
+  padding: 8px 18px; border-radius: 50px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800; font-size: .85rem;
+  cursor: pointer; transition: all .25s; letter-spacing: .5px;
+}
+.tab-btn:hover, .tab-btn.active {
+  background: var(--gold); border-color: var(--gold);
+  color: var(--night); box-shadow: 0 0 16px rgba(232,184,75,.4);
+  transform: scale(1.04);
+}
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── SECTION TITLE ── */
+.sec-title {
+  font-family: 'Amiri', serif;
+  font-size: 1.6rem; color: var(--gold);
+  margin: 24px 0 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.sec-title::after { content:''; flex:1; height:1px; background: linear-gradient(to right, var(--border), transparent); }
+
+/* ── IBADAH TRACKER ── */
+.tracker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media(max-width:580px) { .tracker-grid { grid-template-columns: 1fr; } }
+
+.tracker-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 22px;
+}
+.tb-syariff { border-color: rgba(56,189,248,.25); }
+.tb-raisya  { border-color: rgba(244,114,182,.25); }
+
+.tb-name {
+  font-family: 'Amiri', serif; font-size: 1.3rem;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.tb-syariff .tb-name { color: var(--syariff); }
+.tb-raisya  .tb-name { color: var(--raisya); }
+
+/* Day selector */
+.day-nav {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 16px;
+}
+.day-nav-btn {
+  background: rgba(255,255,255,.06); border: 1px solid var(--border);
+  color: var(--white); width: 30px; height: 30px; border-radius: 50%;
+  cursor: pointer; font-size: 1rem; transition: all .2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.day-nav-btn:hover { background: var(--gold); color: var(--night); border-color: var(--gold); }
+.day-display {
+  flex: 1; text-align: center;
+  font-family: 'Amiri', serif; font-size: 1.1rem; color: var(--gold-soft);
+}
+
+/* Ibadah items */
+.ibadah-list { display: flex; flex-direction: column; gap: 8px; }
+
+.ibadah-item {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px; padding: 10px 14px;
+  cursor: pointer; transition: all .25s; user-select: none;
+}
+.ibadah-item:hover { background: rgba(255,255,255,.06); transform: translateX(3px); }
+.ibadah-item.checked-syariff {
+  background: rgba(56,189,248,.1);
+  border-color: rgba(56,189,248,.35);
+  box-shadow: 0 0 10px rgba(56,189,248,.1);
+}
+.ibadah-item.checked-raisya {
+  background: rgba(244,114,182,.1);
+  border-color: rgba(244,114,182,.35);
+  box-shadow: 0 0 10px rgba(244,114,182,.1);
+}
+
+.ibadah-icon { font-size: 1.4rem; width: 30px; text-align: center; }
+.ibadah-info { flex: 1; }
+.ibadah-name { font-weight: 800; font-size: .9rem; }
+.ibadah-pts { font-size: .72rem; opacity: .55; font-weight: 700; }
+.ibadah-check {
+  width: 26px; height: 26px; border-radius: 8px;
+  border: 2px solid rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .9rem; font-weight: 900; transition: all .2s;
+}
+.checked-syariff .ibadah-check { background: var(--syariff); border-color: var(--syariff); color: #000; box-shadow: 0 0 8px var(--syariff); }
+.checked-raisya  .ibadah-check { background: var(--raisya);  border-color: var(--raisya);  color: #fff; box-shadow: 0 0 8px var(--raisya); }
+
+/* Day total */
+.day-total {
+  margin-top: 12px; text-align: center;
+  font-family: 'Amiri', serif; font-size: 1rem; color: var(--gold);
+  opacity: .8;
+}
+
+/* ── RAMADAN CALENDAR VIEW ── */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+@media(max-width:580px) { .cal-grid { grid-template-columns: repeat(5, 1fr); } }
+
+.cal-day {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px; padding: 10px 6px;
+  text-align: center; cursor: pointer; transition: all .25s;
+  position: relative;
+}
+.cal-day:hover { transform: scale(1.04); background: rgba(255,255,255,.07); }
+.cal-day.today { border-color: var(--gold); box-shadow: 0 0 10px rgba(232,184,75,.2); }
+.cal-day.selected { border-color: var(--teal); background: rgba(45,212,191,.08); }
+
+.cal-day-num { font-family: 'Amiri', serif; font-size: 1.1rem; color: var(--gold-soft); }
+.cal-day-label { font-size: .65rem; opacity: .45; font-weight: 700; letter-spacing: 1px; margin-top: 2px; }
+
+.cal-mini-dots { display: flex; justify-content: center; gap: 2px; margin-top: 5px; flex-wrap: wrap; }
+.cal-dot { width: 5px; height: 5px; border-radius: 50%; }
+.dot-s { background: var(--syariff); }
+.dot-r { background: var(--raisya); }
+.dot-empty { background: rgba(255,255,255,.12); }
+
+/* ── REWARD SYSTEM ── */
+.reward-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media(max-width:580px) { .reward-cols { grid-template-columns: 1fr; } }
+
+.reward-col-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 22px;
+}
+
+.rcb-syariff { border-color: rgba(56,189,248,.25); }
+.rcb-raisya  { border-color: rgba(244,114,182,.25); }
+
+.rcb-header {
+  font-family: 'Amiri', serif; font-size: 1.2rem;
+  margin-bottom: 6px;
+}
+.rcb-syariff .rcb-header { color: var(--syariff); }
+.rcb-raisya  .rcb-header { color: var(--raisya); }
+
+.rcb-total {
+  font-size: .82rem; font-weight: 800; color: var(--gold); margin-bottom: 14px;
+}
+
+.reward-item {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px; padding: 11px 14px; margin-bottom: 8px;
+  transition: all .3s;
+}
+.reward-item.unlocked-item {
+  border-color: rgba(232,184,75,.4);
+  background: rgba(232,184,75,.07);
+}
+.reward-item.claimed-item {
+  border-color: rgba(74,222,128,.4);
+  background: rgba(74,222,128,.07);
+  opacity: .7;
+}
+
+.ri-icon { font-size: 1.6rem; }
+.ri-info { flex: 1; }
+.ri-name { font-weight: 800; font-size: .88rem; }
+.ri-req { font-size: .72rem; opacity: .5; margin-top: 2px; }
+.ri-badge {
+  font-family: 'Nunito', sans-serif; font-weight: 900;
+  font-size: .75rem; letter-spacing: 1px;
+  padding: 4px 10px; border-radius: 20px; cursor: pointer;
+  transition: all .2s; border: none;
+}
+.badge-locked { background: rgba(255,255,255,.06); color: rgba(255,255,255,.3); cursor: default; }
+.badge-unlock { background: var(--gold); color: var(--night); box-shadow: 0 0 10px rgba(232,184,75,.3); }
+.badge-unlock:hover { transform: scale(1.05); box-shadow: 0 0 16px rgba(232,184,75,.5); }
+.badge-claimed { background: var(--green); color: #000; cursor: default; }
+
+/* ── LEADERBOARD / STATS ── */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 14px; margin-top: 10px; }
+
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 18px; text-align: center;
+  transition: transform .25s;
+}
+.stat-card:hover { transform: translateY(-3px); }
+.stat-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+.stat-val {
+  font-family: 'Amiri', serif; font-size: 2rem; color: var(--gold);
+  display: block; margin-bottom: 2px;
+}
+.stat-lbl { font-size: .78rem; opacity: .55; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+.stat-sub { font-size: .72rem; margin-top: 4px; opacity: .4; }
+
+/* Progress ring */
+.ring-wrap { display: flex; justify-content: center; margin: 20px 0; gap: 30px; flex-wrap: wrap; }
+.ring-box { text-align: center; }
+.ring-label { font-size: .82rem; font-weight: 800; margin-top: 8px; }
+
+svg.ring { transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: rgba(255,255,255,.07); }
+.ring-fill { fill: none; stroke-linecap: round; transition: stroke-dashoffset .8s ease; }
+
+/* Motivational quote */
+.quote-box {
+  background: rgba(232,184,75,.06);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px 24px;
+  text-align: center; margin: 20px 0;
+}
+.quote-ar { font-family: 'Amiri', serif; font-size: 1.3rem; color: var(--gold); margin-bottom: 6px; }
+.quote-ms { font-size: .85rem; opacity: .6; font-weight: 700; font-style: italic; }
+
+/* Reset btn */
+.reset-btn {
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.4); padding: 5px 14px; border-radius: 20px;
+  font-family: 'Nunito',sans-serif; font-weight: 700; font-size: .75rem;
+  cursor: pointer; margin-top: 10px; transition: all .2s;
+}
+.reset-btn:hover { background: rgba(233,69,96,.12); border-color: #e94560; color: #e94560; }
+
+.footer { text-align: center; padding: 32px; opacity: .3; font-family: 'Amiri', serif; font-size: 1rem; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+
+<div class="sky"></div>
+<div class="stars" id="stars"></div>
+<div class="moon-deco">🌙</div>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <span class="arabic-text">رَمَضَانُ كَرِيمٌ</span>
+    <div class="ramadan-title">Ramadan Tracker</div>
+    <div class="subtitle-row">
+      <div class="subtitle-line"></div>
+      <div class="subtitle-text">SYARIFF & RAISYA • 1446H</div>
+      <div class="subtitle-line r"></div>
+    </div>
+    <div class="hijri-date" id="hijri-display">🌙 Hari ke-<span id="today-day">1</span> Ramadan</div>
+  </div>
+
+  <!-- HERO CARDS -->
+  <div class="heroes">
+    <div class="hero-card hc-syariff">
+      <span class="hc-emoji">🧒</span>
+      <div class="hc-name">Syariff</div>
+      <div class="hc-title">⚡ Pejuang Ramadan • 10 Tahun</div>
+      <div class="hc-xp-label">Pahala terkumpul minggu ini</div>
+      <div class="hc-xp-bg"><div class="hc-xp-fill" id="card-bar-syariff" style="width:0%"></div></div>
+      <div class="hc-xp-pts" id="card-pts-syariff">0 mata</div>
+    </div>
+    <div class="hero-card hc-raisya">
+      <span class="hc-emoji">👧</span>
+      <div class="hc-name">Raisya</div>
+      <div class="hc-title">✨ Puteri Ramadan • 8 Tahun</div>
+      <div class="hc-xp-label">Pahala terkumpul minggu ini</div>
+      <div class="hc-xp-bg"><div class="hc-xp-fill" id="card-bar-raisya" style="width:0%"></div></div>
+      <div class="hc-xp-pts" id="card-pts-raisya">0 mata</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('tracker',this)">📿 Tracker Harian</button>
+    <button class="tab-btn" onclick="showTab('kalendar',this)">📅 Kalendar 30 Hari</button>
+    <button class="tab-btn" onclick="showTab('reward',this)">🎁 Sistem Reward</button>
+    <button class="tab-btn" onclick="showTab('stats',this)">📊 Statistik</button>
+  </div>
+
+  <!-- ════════════ TRACKER HARIAN ════════════ -->
+  <div id="tab-tracker" class="panel active">
+    <div class="sec-title">📿 Rekod Ibadah Hari Ini</div>
+
+    <div class="quote-box">
+      <div class="quote-ar">مَنْ صَامَ رَمَضَانَ إِيمَانًا وَاحْتِسَابًا</div>
+      <div class="quote-ms">Sesiapa berpuasa Ramadan dengan penuh keimanan dan mengharap pahala...</div>
+    </div>
+
+    <div class="tracker-grid">
+      <!-- SYARIFF -->
+      <div class="tracker-box tb-syariff">
+        <div class="tb-name">🧒 Syariff
+          <div class="day-nav" style="margin-left:auto">
+            <button class="day-nav-btn" onclick="changeDay('syariff',-1)">‹</button>
+            <div class="day-display" id="day-disp-syariff">Hari 1</div>
+            <button class="day-nav-btn" onclick="changeDay('syariff',1)">›</button>
+          </div>
+        </div>
+        <div class="ibadah-list" id="ibadah-syariff"></div>
+        <div class="day-total" id="day-total-syariff">0 mata hari ini</div>
+      </div>
+
+      <!-- RAISYA -->
+      <div class="tracker-box tb-raisya">
+        <div class="tb-name">👧 Raisya
+          <div class="day-nav" style="margin-left:auto">
+            <button class="day-nav-btn" onclick="changeDay('raisya',-1)">‹</button>
+            <div class="day-display" id="day-disp-raisya">Hari 1</div>
+            <button class="day-nav-btn" onclick="changeDay('raisya',1)">›</button>
+          </div>
+        </div>
+        <div class="ibadah-list" id="ibadah-raisya"></div>
+        <div class="day-total" id="day-total-raisya">0 mata hari ini</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ KALENDAR ════════════ -->
+  <div id="tab-kalendar" class="panel">
+    <div class="sec-title">📅 Kalendar 30 Hari Ramadan</div>
+    <p style="font-size:.82rem;opacity:.5;margin-bottom:14px">Klik mana-mana hari untuk lihat rekod. Titik biru = Syariff, titik pink = Raisya.</p>
+    <div class="cal-grid" id="cal-grid"></div>
+    <button class="reset-btn" style="margin-top:16px" onclick="resetAll()">🔄 Reset Semua Data Ramadan</button>
+  </div>
+
+  <!-- ════════════ REWARD ════════════ -->
+  <div id="tab-reward" class="panel">
+    <div class="sec-title">🎁 Sistem Reward Ramadan</div>
+
+    <div class="quote-box">
+      <div class="quote-ar">إِنَّ اللَّهَ لَا يُضِيعُ أَجْرَ الْمُحْسِنِينَ</div>
+      <div class="quote-ms">Sesungguhnya Allah tidak menyia-nyiakan pahala orang yang berbuat kebaikan</div>
+    </div>
+
+    <div class="reward-cols">
+      <div class="reward-col-box rcb-syariff">
+        <div class="rcb-header">🧒 Syariff</div>
+        <div class="rcb-total" id="reward-pts-syariff">0 mata terkumpul</div>
+        <div id="reward-list-syariff"></div>
+      </div>
+      <div class="reward-col-box rcb-raisya">
+        <div class="rcb-header">👧 Raisya</div>
+        <div class="rcb-total" id="reward-pts-raisya">0 mata terkumpul</div>
+        <div id="reward-list-raisya"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px">
+      <div style="font-family:'Amiri',serif;font-size:1.1rem;color:var(--gold);margin-bottom:10px">💡 Sistem Mata</div>
+      <div id="mata-guide"></div>
+    </div>
+  </div>
+
+  <!-- ════════════ STATS ════════════ -->
+  <div id="tab-stats" class="panel">
+    <div class="sec-title">📊 Statistik Ramadan</div>
+
+    <!-- Progress rings -->
+    <div class="ring-wrap" id="ring-wrap"></div>
+
+    <!-- Stat cards -->
+    <div class="stats-grid" id="stats-grid"></div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ══════════════════════════════════
+   CONFIG
+══════════════════════════════════ */
+const TOTAL_DAYS = 30;
+
+// Ibadah config: id, label, icon, pts, note
+const IBADAH = [
+  {id:'puasa',     label:'Puasa Penuh',        icon:'🌙', pts:20, note:'+20 mata'},
+  {id:'subuh',     label:'Solat Subuh',         icon:'🕌', pts:5,  note:'+5 mata'},
+  {id:'zohor',     label:'Solat Zohor',         icon:'🕌', pts:5,  note:'+5 mata'},
+  {id:'asar',      label:'Solat Asar',          icon:'🕌', pts:5,  note:'+5 mata'},
+  {id:'maghrib',   label:'Solat Maghrib',       icon:'🕌', pts:5,  note:'+5 mata'},
+  {id:'isyak',     label:'Solat Isyak',         icon:'🕌', pts:5,  note:'+5 mata'},
+  {id:'tarawikh',  label:'Solat Tarawikh',      icon:'🌟', pts:10, note:'+10 mata'},
+  {id:'quran',     label:'Baca Al-Quran (1ms)', icon:'📖', pts:8,  note:'+8 mata'},
+  {id:'witir',     label:'Solat Witir',         icon:'✨', pts:5,  note:'+5 mata'},
+  {id:'doa',       label:'Doa Buka Puasa',      icon:'🤲', pts:3,  note:'+3 mata'},
+  {id:'sedekah',   label:'Sedekah / Berbuat baik',icon:'💝',pts:5, note:'+5 mata'},
+  {id:'hafazan',   label:'Hafaz / Ulang Hafazan',icon:'📿',pts:8, note:'+8 mata'},
+];
+
+const MAX_DAILY = IBADAH.reduce((s,i)=>s+i.pts,0);
+
+const REWARDS = [
+  {icon:'🍦', name:'Ice Cream Pilihan Sendiri',          req:50},
+  {icon:'🎮', name:'Gaming 1 Jam Extra',                  req:100},
+  {icon:'🎬', name:'Tonton Movie / YouTube 2 Jam',       req:150},
+  {icon:'🍕', name:'Makan Tempat Pilihan',               req:200},
+  {icon:'🛒', name:'Beli Buku / Mainan (RM15)',           req:300},
+  {icon:'🎡', name:'Jalan-jalan Tempat Seronok',         req:400},
+  {icon:'🌟', name:'Hadiah Raya Istimewa dari Ayah+Ibu', req:500},
+];
+
+/* ══════════════════════════════════
+   STATE & STORAGE
+══════════════════════════════════ */
+function load(k,def){ try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;} }
+function save(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
+
+let currentDay = { syariff: 1, raisya: 1 };
+
+function getData(who){ return load('ramadan_'+who, {}); }
+function saveData(who,d){ save('ramadan_'+who,d); }
+function getDay(who,day){ const d=getData(who); return d[day]||{}; }
+function setDay(who,day,ibadahId,val){
+  const d=getData(who);
+  if(!d[day]) d[day]={};
+  d[day][ibadahId]=val;
+  saveData(who,d);
+}
+
+function getClaimed(who){ return load('claims_'+who,{}); }
+function setClaimed(who,rewardIdx){ const c=getClaimed(who); c[rewardIdx]=true; save('claims_'+who,c); }
+
+/* ══════════════════════════════════
+   TOTAL POINTS
+══════════════════════════════════ */
+function totalPoints(who){
+  const d=getData(who); let total=0;
+  Object.values(d).forEach(day=>{
+    IBADAH.forEach(ib=>{ if(day[ib.id]) total+=ib.pts; });
+  });
+  return total;
+}
+
+function weekPoints(who){
+  const d=getData(who); let total=0;
+  // last 7 days
+  for(let i=1;i<=30;i++){
+    if(d[i]) IBADAH.forEach(ib=>{ if(d[i][ib.id]) total+=ib.pts; });
+  }
+  return total;
+}
+
+function dayPoints(who,day){
+  const ddata=getDay(who,day); let pts=0;
+  IBADAH.forEach(ib=>{ if(ddata[ib.id]) pts+=ib.pts; });
+  return pts;
+}
+
+/* ══════════════════════════════════
+   TRACKER
+══════════════════════════════════ */
+function buildTracker(who){
+  const day=currentDay[who];
+  const ddata=getDay(who,day);
+  document.getElementById('day-disp-'+who).textContent='Hari '+day;
+
+  const list=document.getElementById('ibadah-'+who);
+  list.innerHTML='';
+  IBADAH.forEach(ib=>{
+    const checked=!!ddata[ib.id];
+    const cls=checked?'ibadah-item checked-'+who:'ibadah-item';
+    const div=document.createElement('div');
+    div.className=cls;
+    div.innerHTML=`
+      <div class="ibadah-icon">${ib.icon}</div>
+      <div class="ibadah-info">
+        <div class="ibadah-name">${ib.label}</div>
+        <div class="ibadah-pts">${ib.note}</div>
+      </div>
+      <div class="ibadah-check">${checked?'✓':''}</div>`;
+    div.onclick=()=>toggleIbadah(who,day,ib.id,div);
+    list.appendChild(div);
+  });
+
+  const pts=dayPoints(who,day);
+  document.getElementById('day-total-'+who).textContent=pts+' mata hari ini (maks '+MAX_DAILY+')';
+  updateCardBars();
+}
+
+function toggleIbadah(who,day,ibadahId,el){
+  const current=!!getDay(who,day)[ibadahId];
+  setDay(who,day,ibadahId,!current);
+  if(!current){
+    el.classList.add('checked-'+who);
+    el.querySelector('.ibadah-check').textContent='✓';
+  } else {
+    el.classList.remove('checked-'+who);
+    el.querySelector('.ibadah-check').textContent='';
+  }
+  const pts=dayPoints(who,day);
+  document.getElementById('day-total-'+who).textContent=pts+' mata hari ini (maks '+MAX_DAILY+')';
+  updateCardBars();
+  // refresh calendar dots & rewards silently
+  if(document.getElementById('tab-kalendar').classList.contains('active')) buildCalendar();
+  if(document.getElementById('tab-reward').classList.contains('active')) buildRewards();
+  if(document.getElementById('tab-stats').classList.contains('active')) buildStats();
+}
+
+function changeDay(who,dir){
+  currentDay[who]=Math.max(1,Math.min(30,currentDay[who]+dir));
+  buildTracker(who);
+}
+
+function updateCardBars(){
+  ['syariff','raisya'].forEach(who=>{
+    const total=totalPoints(who);
+    const maxTotal=MAX_DAILY*TOTAL_DAYS;
+    const pct=Math.min(100,Math.round(total/maxTotal*100));
+    document.getElementById('card-bar-'+who).style.width=pct+'%';
+    document.getElementById('card-pts-'+who).textContent=total+' mata';
+  });
+}
+
+/* ══════════════════════════════════
+   CALENDAR
+══════════════════════════════════ */
+function buildCalendar(){
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML='';
+  for(let d=1;d<=TOTAL_DAYS;d++){
+    const sData=getDay('syariff',d);
+    const rData=getDay('raisya',d);
+    const sDone=IBADAH.filter(i=>sData[i.id]).length;
+    const rDone=IBADAH.filter(i=>rData[i.id]).length;
+    const total=IBADAH.length;
+
+    const cell=document.createElement('div');
+    cell.className='cal-day'+(d===currentDay.syariff?' selected':'');
+    cell.onclick=()=>{ currentDay.syariff=d; currentDay.raisya=d; buildTracker('syariff'); buildTracker('raisya'); showTab('tracker',document.querySelector('.tab-btn')); };
+
+    let dotsS='',dotsR='';
+    // show 3 dots max per person
+    const sSlots=Math.min(3,total);
+    for(let i=0;i<sSlots;i++) dotsS+=`<div class="cal-dot ${i<sDone?'dot-s':'dot-empty'}"></div>`;
+    for(let i=0;i<sSlots;i++) dotsR+=`<div class="cal-dot ${i<rDone?'dot-r':'dot-empty'}"></div>`;
+
+    cell.innerHTML=`
+      <div class="cal-day-num">${d}</div>
+      <div class="cal-day-label">Ramadan</div>
+      <div class="cal-mini-dots">${dotsS}</div>
+      <div class="cal-mini-dots">${dotsR}</div>`;
+    grid.appendChild(cell);
+  }
+}
+
+/* ══════════════════════════════════
+   REWARDS
+══════════════════════════════════ */
+function buildRewards(){
+  ['syariff','raisya'].forEach(who=>{
+    const total=totalPoints(who);
+    const claimed=getClaimed(who);
+    document.getElementById('reward-pts-'+who).textContent=total+' mata terkumpul';
+    const el=document.getElementById('reward-list-'+who);
+    el.innerHTML='';
+    REWARDS.forEach((r,i)=>{
+      const unlocked=total>=r.req;
+      const isClaimed=!!claimed[i];
+      let cls='reward-item';
+      if(isClaimed) cls+=' claimed-item';
+      else if(unlocked) cls+=' unlocked-item';
+      let badgeHtml='';
+      if(isClaimed) badgeHtml=`<button class="ri-badge badge-claimed">✓ DITUNTUT</button>`;
+      else if(unlocked) badgeHtml=`<button class="ri-badge badge-unlock" onclick="claimReward('${who}',${i})">TUNTUT!</button>`;
+      else badgeHtml=`<button class="ri-badge badge-locked">${r.req} mata</button>`;
+      el.innerHTML+=`
+        <div class="${cls}">
+          <div class="ri-icon">${r.icon}</div>
+          <div class="ri-info">
+            <div class="ri-name">${r.name}</div>
+            <div class="ri-req">Perlu ${r.req} mata${isClaimed?' • Sudah dituntut':''}</div>
+          </div>
+          ${badgeHtml}
+        </div>`;
+    });
+  });
+
+  // Mata guide
+  const guide=document.getElementById('mata-guide');
+  if(guide){
+    guide.innerHTML='';
+    IBADAH.forEach(ib=>{
+      guide.innerHTML+=`<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:4px 10px;margin:3px;font-size:.78rem;font-weight:800">
+        ${ib.icon} ${ib.label} <span style="color:var(--gold);margin-left:4px">+${ib.pts}</span></span>`;
+    });
+    guide.innerHTML+=`<p style="margin-top:10px;font-size:.78rem;opacity:.45">Maksimum ${MAX_DAILY} mata sehari × 30 hari = ${MAX_DAILY*30} mata</p>`;
+  }
+}
+
+function claimReward(who,idx){
+  if(!confirm('Confirm tuntut reward ini untuk '+(who==='syariff'?'Syariff':'Raisya')+'?')) return;
+  setClaimed(who,idx);
+  buildRewards();
+}
+
+/* ══════════════════════════════════
+   STATS
+══════════════════════════════════ */
+function buildStats(){
+  ['syariff','raisya'].forEach(who=>{
+    const d=getData(who);
+    let daysWithPuasa=0, totalSolat=0, totalQuran=0, totalTarawikh=0, bestDay=0, bestDayNum=1;
+    const solatIds=['subuh','zohor','asar','maghrib','isyak'];
+
+    for(let day=1;day<=30;day++){
+      const dd=d[day]||{};
+      if(dd.puasa) daysWithPuasa++;
+      solatIds.forEach(s=>{ if(dd[s]) totalSolat++; });
+      if(dd.quran) totalQuran++;
+      if(dd.tarawikh) totalTarawikh++;
+      const pts=dayPoints(who,day);
+      if(pts>bestDay){bestDay=pts;bestDayNum=day;}
+    }
+
+    // ring
+    const pct=Math.round(totalPoints(who)/(MAX_DAILY*30)*100);
+    const r=45,circ=2*Math.PI*r;
+    const offset=circ*(1-pct/100);
+    const color=who==='syariff'?'#38bdf8':'#f472b6';
+    const name=who==='syariff'?'Syariff':'Raisya';
+
+    document.getElementById('ring-wrap').innerHTML+= `
+      <div class="ring-box">
+        <svg class="ring" width="110" height="110" viewBox="0 0 110 110">
+          <circle class="ring-bg" cx="55" cy="55" r="${r}" stroke-width="8"/>
+          <circle class="ring-fill" cx="55" cy="55" r="${r}" stroke="${color}" stroke-width="8"
+            stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+        </svg>
+        <div style="font-family:'Amiri',serif;font-size:1.6rem;color:var(--gold);margin-top:-80px;text-align:center;position:relative">${pct}%</div>
+        <div style="margin-top:50px" class="ring-label" style="color:${color}">${name}</div>
+      </div>`;
+  });
+
+  // stat cards
+  const sg=document.getElementById('stats-grid');
+  if(!sg) return;
+  sg.innerHTML='';
+
+  const makeCard=(icon,val,lbl,sub)=>`
+    <div class="stat-card">
+      <span class="stat-icon">${icon}</span>
+      <span class="stat-val">${val}</span>
+      <span class="stat-lbl">${lbl}</span>
+      ${sub?`<span class="stat-sub">${sub}</span>`:''}
+    </div>`;
+
+  ['syariff','raisya'].forEach(who=>{
+    const d=getData(who);
+    let dp=0, ts=0, tq=0, tt=0;
+    const si=['subuh','zohor','asar','maghrib','isyak'];
+    for(let day=1;day<=30;day++){
+      const dd=d[day]||{};
+      if(dd.puasa) dp++;
+      si.forEach(s=>{ if(dd[s]) ts++; });
+      if(dd.quran) tq++;
+      if(dd.tarawikh) tt++;
+    }
+    const total=totalPoints(who);
+    const name=who==='syariff'?'🧒 Syariff':'👧 Raisya';
+    sg.innerHTML+=`<div style="grid-column:1/-1;font-family:'Amiri',serif;font-size:1.1rem;color:${who==='syariff'?'var(--syariff)':'var(--raisya)'};margin-top:10px">${name}</div>`;
+    sg.innerHTML+=makeCard('🌙',dp,'Hari Puasa',`dari 30 hari`);
+    sg.innerHTML+=makeCard('🕌',ts,'Solat Lengkap',`dari ${30*5} waktu`);
+    sg.innerHTML+=makeCard('📖',tq,'Hari Baca Quran','');
+    sg.innerHTML+=makeCard('🌟',tt,'Malam Tarawikh','');
+    sg.innerHTML+=makeCard('⭐',total,'Jumlah Mata',`Maks ${MAX_DAILY*30}`);
+  });
+}
+
+/* ══════════════════════════════════
+   TABS
+══════════════════════════════════ */
+function showTab(name, btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  // rebuild on show
+  if(name==='kalendar') buildCalendar();
+  if(name==='reward') buildRewards();
+  if(name==='stats'){ document.getElementById('ring-wrap').innerHTML=''; document.getElementById('stats-grid').innerHTML=''; buildStats(); }
+}
+
+/* ══════════════════════════════════
+   RESET
+══════════════════════════════════ */
+function resetAll(){
+  if(!confirm('Reset SEMUA data Ramadan? Ini tidak boleh dibuat alik!')) return;
+  ['syariff','raisya'].forEach(w=>{ localStorage.removeItem('ramadan_'+w); localStorage.removeItem('claims_'+w); });
+  init();
+}
+
+/* ══════════════════════════════════
+   STARFIELD
+══════════════════════════════════ */
+function buildStars(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<80;i++){
+    const s=document.createElement('div');
+    s.className='star-dot';
+    const sz=Math.random()*1.8+0.5;
+    s.style.cssText=`
+      left:${Math.random()*100}%;top:${Math.random()*100}%;
+      width:${sz}px;height:${sz}px;
+      --op:${Math.random()*0.5+0.3};
+      --dur:${Math.random()*3+2}s;
+      --delay:${Math.random()*4}s;`;
+    c.appendChild(s);
+  }
+}
+
+/* ══════════════════════════════════
+   INIT
+══════════════════════════════════ */
+function init(){
+  buildStars();
+  buildTracker('syariff');
+  buildTracker('raisya');
+  updateCardBars();
+  buildRewards(); // pre-build for mata guide
+}
+
+init();
+</script>
+</body>
+</html>
