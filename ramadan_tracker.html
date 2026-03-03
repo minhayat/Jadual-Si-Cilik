@@ -629,8 +629,9 @@ function setDay(who,day,ibadahId,val){
   saveData(who,d);
 }
 
-function getClaimed(who){ return load('claims_'+who,{}); }
-function setClaimed(who,rewardIdx){ const c=getClaimed(who); c[rewardIdx]=(c[rewardIdx]||0)+1; save('claims_'+who,c); }
+function getSpent(who){ return load('spent_ramadan_'+who, 0); }
+function addSpent(who, pts){ save('spent_ramadan_'+who, getSpent(who)+pts); }
+function getClaimCount(who){ return load('claims_'+who,{}); }
 
 /* ══════════════════════════════════
    TOTAL POINTS
@@ -734,10 +735,11 @@ function changeDay(who,dir){
 function updateCardBars(){
   ['syariff','raisya'].forEach(who=>{
     const total=totalPoints(who);
+    const baki=total-getSpent(who);
     const maxTotal=MAX_DAILY*TOTAL_DAYS;
     const pct=Math.min(100,Math.round(total/maxTotal*100));
     document.getElementById('card-bar-'+who).style.width=pct+'%';
-    document.getElementById('card-pts-'+who).textContent=total+' mata';
+    document.getElementById('card-pts-'+who).textContent=total+' mata | Baki: '+baki;
   });
 }
 
@@ -779,26 +781,28 @@ function buildCalendar(){
 function buildRewards(){
   ['syariff','raisya'].forEach(who=>{
     const total=totalPoints(who);
-    const claimed=getClaimed(who);
-    document.getElementById('reward-pts-'+who).textContent=total+' mata terkumpul';
+    const spent=getSpent(who);
+    const baki=total-spent;
+    const counts=getClaimCount(who);
+    document.getElementById('reward-pts-'+who).textContent=total+' mata terkumpul | 💰 Baki: '+baki+' mata';
     const el=document.getElementById('reward-list-'+who);
     el.innerHTML='';
     REWARDS.forEach((r,i)=>{
-      const unlocked=total>=r.req;
-      const count=claimed[i]||0;
+      const unlocked=baki>=r.req;
+      const count=counts[i]||0;
       let cls='reward-item';
-      if(count>0) cls+=' claimed-item';
+      if(count>0 && !unlocked) cls+=' claimed-item';
       else if(unlocked) cls+=' unlocked-item';
       let badgeHtml='';
       if(unlocked) badgeHtml=`<button class="ri-badge badge-unlock" onclick="claimReward('${who}',${i})">TUNTUT!</button>`;
       else badgeHtml=`<button class="ri-badge badge-locked">${r.req} mata</button>`;
-      const timesLabel = count>0 ? ` • Dituntut ${count}x` : '';
+      const timesLabel=count>0 ? ` • Dituntut ${count}x` : '';
       el.innerHTML+=`
         <div class="${cls}">
           <div class="ri-icon">${r.icon}</div>
           <div class="ri-info">
             <div class="ri-name">${r.name}</div>
-            <div class="ri-req">Perlu ${r.req} mata${timesLabel}</div>
+            <div class="ri-req">Perlu ${r.req} mata | Baki: ${baki} mata${timesLabel}</div>
           </div>
           ${badgeHtml}
         </div>`;
@@ -818,9 +822,16 @@ function buildRewards(){
 }
 
 function claimReward(who,idx){
-  if(!confirm('Confirm tuntut reward ini untuk '+(who==='syariff'?'Syariff':'Raisya')+'?')) return;
-  setClaimed(who,idx);
+  const total=totalPoints(who);
+  const spent=getSpent(who);
+  const baki=total-spent;
+  const r=REWARDS[idx];
+  if(baki<r.req){ alert('Mata tidak cukup! Baki: '+baki+' mata'); return; }
+  if(!confirm('Tuntut "'+r.name+'" untuk '+(who==='syariff'?'Syariff':'Raisya')+'?\n\nBaki selepas tuntut: '+(baki-r.req)+' mata')) return;
+  addSpent(who, r.req);
+  const c=getClaimCount(who); c[idx]=(c[idx]||0)+1; save('claims_'+who,c);
   buildRewards();
+  updateCardBars();
 }
 
 /* ══════════════════════════════════
@@ -915,7 +926,7 @@ function showTab(name, btn){
 ══════════════════════════════════ */
 function resetAll(){
   if(!confirm('Reset SEMUA data Ramadan? Ini tidak boleh dibuat alik!')) return;
-  ['syariff','raisya'].forEach(w=>{ localStorage.removeItem('ramadan_'+w); localStorage.removeItem('claims_'+w); });
+  ['syariff','raisya'].forEach(w=>{ localStorage.removeItem('ramadan_'+w); localStorage.removeItem('claims_'+w); localStorage.removeItem('spent_ramadan_'+w); });
   init();
 }
 

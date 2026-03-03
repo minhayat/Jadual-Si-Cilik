@@ -717,38 +717,47 @@ function updateTotals(who) {
 }
 
 function resetChecks(who) {
-  if (!confirm('Reset tracker minggu ini untuk ' + (who==='syariff'?'Syariff':'Raisya') + '?')) return;
+  if (!confirm('Reset tracker minggu ini untuk ' + (who==='syariff'?'Syariff':'Raisya') + '? Baki mata juga akan reset.')) return;
   save('checks_' + who, {});
+  save('spent_jadual_' + who, 0);
   buildChecks(who);
 }
 
 /* ─── REWARDS ─── */
-function getClaimed(who) { return load('claims_jadual_' + who, {}); }
-function setClaimed(who, idx) {
-  const c = getClaimed(who);
-  c[idx] = (c[idx] || 0) + 1;
-  save('claims_jadual_' + who, c);
-}
+// Mata sistem: baki mata = jumlah bintang - mata yang dah digunakan untuk reward
+function getSpent(who) { return load('spent_jadual_' + who, 0); }
+function addSpent(who, pts) { save('spent_jadual_' + who, getSpent(who) + pts); }
+function getClaimCount(who) { return load('claims_jadual_' + who, {}); }
 
 function claimReward(who, idx) {
   const total = Object.values(load('checks_' + who, {})).filter(Boolean).length;
+  const spent = getSpent(who);
+  const baki = total - spent;
   const r = rewardDef[idx];
-  if (total < r.req) return;
-  if (!confirm('Confirm tuntut "' + r.name + '" untuk ' + (who==='syariff'?'Syariff':'Raisya') + '?')) return;
-  setClaimed(who, idx);
+  if (baki < r.req) { alert('Baki bintang tidak cukup! Baki: ' + baki + ' ⭐'); return; }
+  if (!confirm('Tuntut "' + r.name + '" untuk ' + (who==='syariff'?'Syariff':'Raisya') + '?\n\nBaki selepas tuntut: ' + (baki - r.req) + ' ⭐')) return;
+  addSpent(who, r.req);
+  const c = getClaimCount(who);
+  c[idx] = (c[idx] || 0) + 1;
+  save('claims_jadual_' + who, c);
   updateTotals(who);
 }
 
 function buildRewards(who, total) {
   const el = document.getElementById('rewards-' + who);
   if (!el) return;
-  const claimed = getClaimed(who);
+  const spent = getSpent(who);
+  const baki = total - spent;
+  const counts = getClaimCount(who);
+  // update baki display
+  const totalEl = document.getElementById('total-' + who);
+  if (totalEl) totalEl.textContent = `⭐ ${total} Bintang | 💰 Baki: ${baki} ⭐`;
   let html = '';
   rewardDef.forEach((r, i) => {
-    const unlocked = total >= r.req;
-    const count = claimed[i] || 0;
+    const unlocked = baki >= r.req;
+    const count = counts[i] || 0;
     let cls = 'reward-item';
-    if (count > 0) cls += ' claimed-item';
+    if (count > 0 && !unlocked) cls += ' claimed-item';
     else if (unlocked) cls += ' unlocked';
     let badge = '';
     if (unlocked) badge = `<button class="badge-unlock" onclick="claimReward('${who}',${i})">TUNTUT!</button>`;
@@ -759,7 +768,7 @@ function buildRewards(who, total) {
         <div class="reward-icon">${r.icon}</div>
         <div class="reward-info">
           <div class="reward-rname">${r.name}</div>
-          <div class="reward-req">Perlukan ${r.req} ⭐ | Ada: ${total} ⭐${timesLabel}</div>
+          <div class="reward-req">Perlu ${r.req} ⭐ | Baki: ${baki} ⭐${timesLabel}</div>
         </div>
         ${badge}
       </div>`;
