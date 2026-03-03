@@ -410,7 +410,7 @@
   <!-- HERO CARDS -->
   <div class="heroes">
     <div class="hero-card card-syariff">
-      <span class="hero-emoji">🦸‍♂️</span>
+      <div class="hero-emoji"><img src="syariff.jpg" alt="Syariff"></div>
       <div class="hero-name">SYARIFF</div>
       <div class="hero-title">⚡ THE LIGHTNING SCHOLAR</div>
       <div class="hero-age">Darjah 4 • 10 Tahun</div>
@@ -424,7 +424,7 @@
       </div>
     </div>
     <div class="hero-card card-raisya">
-      <span class="hero-emoji">🧚‍♀️</span>
+      <div class="hero-emoji"><img src="raisya.jpg" alt="Raisya"></div>
       <div class="hero-name">RAISYA</div>
       <div class="hero-title">✨ THE STAR PRINCESS</div>
       <div class="hero-age">Darjah 2 • 8 Tahun</div>
@@ -724,7 +724,11 @@ function resetChecks(who) {
 
 /* ─── REWARDS ─── */
 function getClaimed(who) { return load('claims_jadual_' + who, {}); }
-function setClaimed(who, idx) { const c = getClaimed(who); c[idx] = true; save('claims_jadual_' + who, c); }
+function setClaimed(who, idx) {
+  const c = getClaimed(who);
+  c[idx] = (c[idx] || 0) + 1;
+  save('claims_jadual_' + who, c);
+}
 
 function claimReward(who, idx) {
   const total = Object.values(load('checks_' + who, {})).filter(Boolean).length;
@@ -742,20 +746,20 @@ function buildRewards(who, total) {
   let html = '';
   rewardDef.forEach((r, i) => {
     const unlocked = total >= r.req;
-    const isClaimed = !!claimed[i];
+    const count = claimed[i] || 0;
     let cls = 'reward-item';
-    if (isClaimed) cls += ' claimed-item';
+    if (count > 0) cls += ' claimed-item';
     else if (unlocked) cls += ' unlocked';
     let badge = '';
-    if (isClaimed) badge = `<button class="badge-claimed">✓ DITUNTUT</button>`;
-    else if (unlocked) badge = `<button class="badge-unlock" onclick="claimReward('${who}',${i})">TUNTUT!</button>`;
+    if (unlocked) badge = `<button class="badge-unlock" onclick="claimReward('${who}',${i})">TUNTUT!</button>`;
     else badge = `<span class="badge-locked-tag">${r.req} ⭐</span>`;
+    const timesLabel = count > 0 ? ` • Dituntut ${count}x` : '';
     html += `
       <div class="${cls}">
         <div class="reward-icon">${r.icon}</div>
         <div class="reward-info">
           <div class="reward-rname">${r.name}</div>
-          <div class="reward-req">Perlukan ${r.req} ⭐ | Ada: ${total} ⭐${isClaimed?' • ✓ Sudah dituntut':''}</div>
+          <div class="reward-req">Perlukan ${r.req} ⭐ | Ada: ${total} ⭐${timesLabel}</div>
         </div>
         ${badge}
       </div>`;
