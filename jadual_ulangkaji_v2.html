@@ -49,6 +49,18 @@
 
   .wrap { max-width:1100px; margin:0 auto; padding:20px; position:relative; z-index:1; }
 
+  /* ── BACK BUTTON ── */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.15);
+    color: rgba(240,244,255,.7); padding: 8px 18px; border-radius: 50px;
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: .85rem;
+    cursor: pointer; text-decoration: none; transition: all .25s;
+    margin-bottom: 16px; letter-spacing: .5px;
+  }
+  .back-btn:hover { background: rgba(255,255,255,.1); color: var(--white); transform: translateX(-3px); }
+
+
   /* ── HEADER ── */
   .header { text-align:center; padding:36px 20px 16px; }
 
@@ -349,6 +361,31 @@
   .footer { text-align:center; padding:28px; opacity:.35; font-size:.78rem; font-weight:800; letter-spacing:2px; }
 
   /* ── RESET BUTTON ── */
+
+  .badge-unlock {
+    background: var(--gold); color: #000; border: none;
+    font-family: 'Nunito',sans-serif; font-weight: 900;
+    font-size: .75rem; letter-spacing: 1px;
+    padding: 5px 12px; border-radius: 20px; cursor: pointer;
+    box-shadow: 0 0 10px rgba(245,166,35,.4); transition: all .2s;
+  }
+  .badge-unlock:hover { transform: scale(1.08); box-shadow: 0 0 18px rgba(245,166,35,.6); }
+  .badge-claimed { 
+    background: var(--green); color: #000; border: none;
+    font-family: 'Nunito',sans-serif; font-weight: 900;
+    font-size: .75rem; letter-spacing: 1px;
+    padding: 5px 12px; border-radius: 20px; cursor: default;
+  }
+  .badge-locked-tag {
+    background: rgba(255,255,255,.06); color: rgba(255,255,255,.3);
+    font-family: 'Nunito',sans-serif; font-weight: 700;
+    font-size: .72rem; padding: 4px 10px; border-radius: 20px;
+  }
+  .reward-item.claimed-item {
+    border-color: rgba(0,230,118,.35) !important;
+    background: rgba(0,230,118,.06) !important;
+  }
+
   .reset-btn {
     background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.15);
     color:rgba(255,255,255,.5); padding:5px 14px; border-radius:20px;
@@ -360,6 +397,8 @@
 </head>
 <body>
 <div class="wrap">
+
+  <a class="back-btn" href="index.html">← Kembali ke Menu Utama</a>
 
   <!-- HEADER -->
   <div class="header">
@@ -684,20 +723,41 @@ function resetChecks(who) {
 }
 
 /* ─── REWARDS ─── */
+function getClaimed(who) { return load('claims_jadual_' + who, {}); }
+function setClaimed(who, idx) { const c = getClaimed(who); c[idx] = true; save('claims_jadual_' + who, c); }
+
+function claimReward(who, idx) {
+  const total = Object.values(load('checks_' + who, {})).filter(Boolean).length;
+  const r = rewardDef[idx];
+  if (total < r.req) return;
+  if (!confirm('Confirm tuntut "' + r.name + '" untuk ' + (who==='syariff'?'Syariff':'Raisya') + '?')) return;
+  setClaimed(who, idx);
+  updateTotals(who);
+}
+
 function buildRewards(who, total) {
   const el = document.getElementById('rewards-' + who);
   if (!el) return;
+  const claimed = getClaimed(who);
   let html = '';
-  rewardDef.forEach(r => {
+  rewardDef.forEach((r, i) => {
     const unlocked = total >= r.req;
+    const isClaimed = !!claimed[i];
+    let cls = 'reward-item';
+    if (isClaimed) cls += ' claimed-item';
+    else if (unlocked) cls += ' unlocked';
+    let badge = '';
+    if (isClaimed) badge = `<button class="badge-claimed">✓ DITUNTUT</button>`;
+    else if (unlocked) badge = `<button class="badge-unlock" onclick="claimReward('${who}',${i})">TUNTUT!</button>`;
+    else badge = `<span class="badge-locked-tag">${r.req} ⭐</span>`;
     html += `
-      <div class="reward-item${unlocked?' unlocked':''}">
+      <div class="${cls}">
         <div class="reward-icon">${r.icon}</div>
         <div class="reward-info">
           <div class="reward-rname">${r.name}</div>
-          <div class="reward-req">Perlukan ${r.req} ⭐ | Ada: ${total} ⭐</div>
+          <div class="reward-req">Perlukan ${r.req} ⭐ | Ada: ${total} ⭐${isClaimed?' • ✓ Sudah dituntut':''}</div>
         </div>
-        <div class="reward-status ${unlocked?'unlocked':'locked'}">${unlocked?'UNLOCKED!':'LOCKED'}</div>
+        ${badge}
       </div>`;
   });
   el.innerHTML = html;

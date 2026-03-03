@@ -31,6 +31,32 @@ body {
   overflow-x: hidden;
 }
 
+
+/* ── BACK BUTTON ── */
+.back-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(232,184,75,.08); border: 1px solid rgba(232,184,75,.25);
+  color: rgba(232,184,75,.8); padding: 8px 18px; border-radius: 50px;
+  font-family: 'Nunito', sans-serif; font-weight: 800; font-size: .85rem;
+  cursor: pointer; text-decoration: none; transition: all .25s;
+  margin-bottom: 10px; letter-spacing: .5px; position: relative; z-index: 2;
+}
+.back-btn:hover { background: rgba(232,184,75,.15); color: var(--gold); transform: translateX(-3px); }
+
+/* ── TICK ALL BUTTON ── */
+.tick-all-row {
+  display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.tick-all-btn {
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15);
+  color: rgba(240,246,255,.7); padding: 5px 14px; border-radius: 20px;
+  font-family: 'Nunito', sans-serif; font-weight: 800; font-size: .78rem;
+  cursor: pointer; transition: all .2s; letter-spacing: .5px;
+}
+.tick-all-btn.tick { background: rgba(74,222,128,.12); border-color: rgba(74,222,128,.35); color: var(--green); }
+.tick-all-btn.untick { background: rgba(233,69,96,.1); border-color: rgba(233,69,96,.3); color: #ff6b6b; }
+.tick-all-btn:hover { transform: scale(1.04); }
+
 /* ── NIGHT SKY BG ── */
 .sky {
   position: fixed; top:0; left:0; width:100%; height:100%;
@@ -420,6 +446,8 @@ svg.ring { transform: rotate(-90deg); }
 
 <div class="wrap">
 
+  <a class="back-btn" href="index.html">← Kembali ke Menu Utama</a>
+
   <!-- HEADER -->
   <div class="header">
     <span class="arabic-text">رَمَضَانُ كَرِيمٌ</span>
@@ -637,7 +665,14 @@ function buildTracker(who){
   document.getElementById('day-disp-'+who).textContent='Hari '+day;
 
   const list=document.getElementById('ibadah-'+who);
-  list.innerHTML='';
+  // Tick All / Untick All row
+  const tickRow = document.createElement('div');
+  tickRow.className = 'tick-all-row';
+  tickRow.innerHTML = `
+    <button class="tick-all-btn tick" onclick="tickAll('${who}',${day},true)">✓ Tick Semua</button>
+    <button class="tick-all-btn untick" onclick="tickAll('${who}',${day},false)">✕ Untick Semua</button>`;
+  list.innerHTML = '';
+  list.appendChild(tickRow);
   IBADAH.forEach(ib=>{
     const checked=!!ddata[ib.id];
     const cls=checked?'ibadah-item checked-'+who:'ibadah-item';
@@ -657,6 +692,17 @@ function buildTracker(who){
   const pts=dayPoints(who,day);
   document.getElementById('day-total-'+who).textContent=pts+' mata hari ini (maks '+MAX_DAILY+')';
   updateCardBars();
+}
+
+function tickAll(who, day, val) {
+  const d = getData(who);
+  if (!d[day]) d[day] = {};
+  IBADAH.forEach(ib => { d[day][ib.id] = val; });
+  saveData(who, d);
+  buildTracker(who);
+  updateCardBars();
+  if(document.getElementById('tab-reward').classList.contains('active')) buildRewards();
+  if(document.getElementById('tab-stats').classList.contains('active')) { document.getElementById('ring-wrap').innerHTML=''; document.getElementById('stats-grid').innerHTML=''; buildStats(); }
 }
 
 function toggleIbadah(who,day,ibadahId,el){
